@@ -9,7 +9,7 @@
 
 ---
 ## 文件夹
-data_source  存放使用项目的具体代码文件
+data_source  需要自行找到对应项目的具体代码文件
 
 GloVe  存放使用的GloVe模型
 
