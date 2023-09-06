@@ -29,13 +29,7 @@ config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 config.log_device_placement = True
 sess = tf.compat.v1.Session(config=config)
-# set_session(sess)
-# # set GPU memory
-# if('tensorflow' == K.backend()):
 
-#     config = tf.compat.v1.ConfigProto()
-#     config.gpu_options.allow_growth = True
-#     sess = tf.compat.v1.Session(config=config)
 
 def classify_by_MLP(project,train_version,test_version, oversample_type,max_length,loop_num,train_X,train_Y,test_X,test_Y):
     # LR_sum_list = [0 for i in range(6)]
@@ -182,154 +176,6 @@ def classify_by_LR(project,train_version,test_version, oversample_type,max_lengt
         ))
         f.write('\n')
 
-def classify_by_RF(project,train_version,test_version, oversample_type,max_length,loop_num,train_X,train_Y,test_X,test_Y):
-    # RF_sum_list = [0 for i in range(6)]
-    p_list = []
-    r_list = []
-    f1_list = []
-    acc_list = []
-    auc_list = []
-    mcc_list = []
-    for i in range(loop_num):
-        print("{}_{}_{}_{}_{}_RF start".format(project,train_version,test_version, oversample_type, i))
-
-
-        #----------------随机森林------------------
-        rfc = RandomForestClassifier()
-        rfc.fit(train_X,train_Y)
-        predict_y_RF = rfc.predict_proba(test_X)
-        np.save('./Deeper_RF/{}_{}_{}_{}.npy'.format(project,train_version,test_version, i), predict_y_RF)
-        # print(predict_y_RF)
-        predict_y_RF = predict_y_RF[:,1:]
-        predict_y_RF = np.round(predict_y_RF)
-        confusion_matrix_RF = confusion_matrix(test_Y,predict_y_RF)
-        TP = confusion_matrix_RF[1][1]
-        FP = confusion_matrix_RF[0][1]
-        TN = confusion_matrix_RF[0][0]
-        FN = confusion_matrix_RF[1][0]
-        MCC_RF = (TP*TN-FP*FN)/math.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))
-        mcc_list.append(MCC_RF)
-        p_list.append(precision_score(y_true=test_Y, y_pred=predict_y_RF))
-        r_list.append(recall_score(y_true=test_Y, y_pred=predict_y_RF))
-        f1_list.append(f1_score(y_true=test_Y, y_pred=predict_y_RF))
-        acc_list.append(accuracy_score(y_true=test_Y, y_pred=predict_y_RF))
-        auc_list.append(roc_auc_score(test_Y, predict_y_RF))
-        # RF_sum_list[0] += precision_score(y_true=test_Y, y_pred=predict_y_RF)
-        # RF_sum_list[1] += recall_score(y_true=test_Y, y_pred=predict_y_RF)
-        # RF_sum_list[2] += f1_score(y_true=test_Y, y_pred=predict_y_RF)
-        # RF_sum_list[3] += accuracy_score(y_true=test_Y, y_pred=predict_y_RF)
-        # RF_sum_list[4] += roc_auc_score(test_Y,predict_y_RF)
-        # RF_sum_list[5] += MCC_RF
-
-        with open('./Deeper_RF/res_by_version_{}_median_value_1122_100.txt'.format(max_length), 'a+', encoding='utf-8') as f:
-            f.write('{}_{}_{}_{}_{}_{} P:{}  R:{}  F1:{}  A:{}  AUC:{}   MCC:{}\n'.format(
-                project,
-                train_version,test_version,
-                str(i),
-                oversample_type,
-                max_length,
-                precision_score(y_true=test_Y, y_pred=predict_y_RF),
-                recall_score(y_true=test_Y, y_pred=predict_y_RF),
-                f1_score(y_true=test_Y, y_pred=predict_y_RF),
-                accuracy_score(y_true=test_Y, y_pred=predict_y_RF),
-                roc_auc_score(test_Y, predict_y_RF),
-                MCC_RF
-            ))
-    with open('./Deeper_RF/res_by_version_{}_median_value_1122_100.txt'.format(max_length), 'a+', encoding='utf-8') as f:
-        f.write('\n')
-    # RF_avg = np.array(RF_sum_list)/loop_num
-    with open('./Deeper_RF/res_by_version_{}_1122_100.txt'.format(max_length), 'a+', encoding='utf-8') as f:
-        # f.write('\n')
-        f.write('{}_{}_{}_{}_{}_{} P:{}  R:{}  F1:{}  A:{}  AUC:{}   MCC:{}\n'.format(
-            project,
-            train_version,test_version,
-            "avg",
-            oversample_type,
-            max_length,
-            np.array(p_list).mean(),
-            np.array(r_list).mean(),
-            np.array(f1_list).mean(),
-            np.array(acc_list).mean(),
-            np.array(auc_list).mean(),
-            np.array(mcc_list).mean()
-        ))
-        f.write('\n')
-
-def classify_by_KNN(project,train_version,test_version, oversample_type,max_length,loop_num,train_X,train_Y,test_X,test_Y):
-    # KNN_sum_list = [0 for i in range(6)]
-    p_list = []
-    r_list = []
-    f1_list = []
-    acc_list = []
-    auc_list = []
-    mcc_list = []
-    for i in range(loop_num):
-        print("{}_{}_{}_{}_{}_KNN start".format(project,train_version,test_version, oversample_type, i))
-
-        # X_train, X_test, y_train, y_test = train_test_split(train_X, train_Y, test_size=0.01)
-        #----------------KNN-----------------   
-        knn = KNeighborsClassifier()
-        knn.fit(train_X, train_Y)
-        # knn.fit(X_train, y_train)
-        predict_y_KNN = knn.predict(test_X)
-        np.save('./Deeper_KNN/{}_{}_{}_{}.npy'.format(project,train_version,test_version,i), predict_y_KNN)
-        # print(type(predict_y_KNN))
-        # predict_y_KNN=(predict_y_KNN[:,1:]-predict_y_KNN[:,0:1])/2+0.5
-        # predict_y_KNN = np.round(predict_y_KNN)
-        # print(type(predict_y_KNN))
-        # print(predict_y_LR.T)
-        confusion_matrix_KNN = confusion_matrix(test_Y,predict_y_KNN)
-        TP = confusion_matrix_KNN[1][1]
-        FP = confusion_matrix_KNN[0][1]
-        TN = confusion_matrix_KNN[0][0]
-        FN = confusion_matrix_KNN[1][0]
-        MCC_KNN = (TP*TN-FP*FN)/math.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))
-        mcc_list.append(MCC_KNN)
-        p_list.append(precision_score(y_true=test_Y, y_pred=predict_y_KNN))
-        r_list.append(recall_score(y_true=test_Y, y_pred=predict_y_KNN))
-        f1_list.append(f1_score(y_true=test_Y, y_pred=predict_y_KNN))
-        acc_list.append(accuracy_score(y_true=test_Y, y_pred=predict_y_KNN))
-        auc_list.append(roc_auc_score(test_Y, predict_y_KNN))
-    #     KNN_sum_list[0] += precision_score(y_true=test_Y, y_pred=predict_y_KNN)
-    #     KNN_sum_list[1] += recall_score(y_true=test_Y, y_pred=predict_y_KNN)
-    #     KNN_sum_list[2] += f1_score(y_true=test_Y, y_pred=predict_y_KNN)
-    #     KNN_sum_list[3] += accuracy_score(y_true=test_Y, y_pred=predict_y_KNN)
-    #     KNN_sum_list[4] += roc_auc_score(test_Y,predict_y_KNN)
-    #     KNN_sum_list[5] += MCC_KNN
-        with open('./Deeper_KNN/res_by_version_{}_median_value_1122.txt'.format(max_length), 'a+', encoding='utf-8') as f:
-            # f.write('\n')
-            f.write('{}_{}_{}_{}_{}_{} P:{}  R:{}  F1:{}  A:{}  AUC:{}   MCC:{}\n'.format(
-                project,
-                train_version,test_version,
-                str(i),
-                oversample_type,
-                max_length,
-                precision_score(y_true=test_Y, y_pred=predict_y_KNN),
-                recall_score(y_true=test_Y, y_pred=predict_y_KNN),
-                f1_score(y_true=test_Y, y_pred=predict_y_KNN),
-                accuracy_score(y_true=test_Y, y_pred=predict_y_KNN),
-                roc_auc_score(test_Y, predict_y_KNN),
-                MCC_KNN
-            ))
-    with open('./Deeper_KNN/res_by_version_{}_median_value_1122.txt'.format(max_length), 'a+', encoding='utf-8') as f:
-        f.write('\n')
-    # KNN_avg = np.array(KNN_sum_list)/loop_num
-    with open('./Deeper_KNN/res_by_version_{}_1122.txt'.format(max_length), 'a+', encoding='utf-8') as f:
-        # f.write('\n')
-        f.write('{}_{}_{}_{}_{}_{} P:{}  R:{}  F1:{}  A:{}  AUC:{}   MCC:{}\n'.format(
-            project,
-            train_version,test_version,
-            "avg",
-            oversample_type,
-            max_length,
-            np.array(p_list).mean(),
-            np.array(r_list).mean(),
-            np.array(f1_list).mean(),
-            np.array(acc_list).mean(),
-            np.array(auc_list).mean(),
-            np.array(mcc_list).mean()
-        ))
-        f.write('\n')
 
 def classify_by_SVM(project,train_version,test_version, oversample_type,max_length,loop_num,train_X,train_Y,test_X,test_Y):
     # SVM_sum_list = [0 for i in range(6)]
@@ -492,7 +338,6 @@ def classify_by_NB(project,train_version,test_version, oversample_type,max_lengt
             ))
             f.write('\n')
 
-def classify_by_LSTM(project,train_version,test_version, oversample_type,max_length,loop_num,train_X,train_Y,test_X,test_Y):
     p_list = []
     r_list = []
     f1_list = []
@@ -570,24 +415,11 @@ def train_and_predict(project,oversample_type,train_version,test_version,max_len
         train_X = np.load('./train_data_by_version/{}_{}_{}_train_X_{}_{}.npy'.format(project,train_version,test_version,oversample_type,max_length)).astype(np.float64)
     test_Y = np.load('./test_data_by_version/{}_{}_{}_test_Y_{}_{}.npy'.format(project,train_version,test_version,oversample_type,max_length)).astype(np.float64)
 
-    # if(oversample_type == "without_mutation"):
-    #     with open('./train_defect_ratio.txt','a+') as f:
-    #         f.write("{}_{}:  ".format(project,train_version)+str(np.sum(train_Y==1)/len(train_Y)))
-    #         f.write("\n")
-
-    # weight = dict(enumerate(compute_class_weight(class_weight='balanced', classes=[0, 1],
-    #                                                 y=train_Y.tolist())))
-
     test_X = np.load('./test_data_by_version/{}_{}_{}_test_X_{}_{}.npy'.format(project,train_version,test_version,oversample_type,max_length)).astype(np.float64)
-    # print(train_X)
-    # # print(train_X)
     # classify_by_LR(project,train_version,test_version,oversample_type,max_length,30,train_X,train_Y,test_X,test_Y)
-    # classify_by_RF(project,train_version,test_version,oversample_type,max_length,100,train_X,train_Y,test_X,test_Y)
-    # classify_by_KNN(project,train_version,test_version,oversample_type,max_length,30,train_X,train_Y,test_X,test_Y)
     classify_by_SVM(project,train_version,test_version,oversample_type,max_length,30,train_X,train_Y,test_X,test_Y)
     # classify_by_NB(project,train_version,test_version,oversample_type,max_length,30,train_X,train_Y,test_X,test_Y)
     # classify_by_MLP(project,train_version,test_version,oversample_type,max_length,100,train_X,train_Y,test_X,test_Y)
-    # classify_by_LSTM(project,train_version,test_version,oversample_type,max_length,5,train_X,train_Y,test_X,test_Y)
 
 
 def f1(y_true, y_pred):
@@ -606,16 +438,8 @@ def f1(y_true, y_pred):
 
 
 if __name__ == '__main__':
-    # # projects = ['jEdit','ant','ivy']
-    # projects_with_version = {'ant':['1.6','1.7'],"jEdit":['4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],"ivy":['1.4','2.0']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                         "ivy":['1.4','2.0'],"poi":['2.0','2.5'],"xalan":['2.4','2.5'],"xerces":['1.2','1.3'],"log4j":['1.0','1.1']}
-    # projects_with_version = {"synapse":['1.1','1.2'],"xalan":['2.4','2.5']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.1','1.2'],"xalan":['2.4','2.5']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
-    projects_with_version = {"ant":['1.5','1.6'],"jEdit":['4.1','4.2'],"camel":['1.4','1.6'],"xalan":['2.4','2.5']}
-    # projects_with_version = {'ivy':['1.4','2.0']}
+    projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
+                                "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
     Processes = []
     for project in projects_with_version.keys():
         project_path = "../PROMISE/promise_data/{}".format(project)
@@ -627,20 +451,9 @@ if __name__ == '__main__':
         for i in range(len(versions)-1):
             train_version = versions[i]
             test_version = versions[i+1]
-            # Processes.append(Process(target=train_and_predict,args=(project,"without_mutation",train_version, test_version,"50%")))
-            # # Processes.append(Process(target=train_and_predict,args=(project,"with_mutation",train_version, test_version,"50%")))
-            # Processes.append(Process(target=train_and_predict,args=(project,"with_ROS",train_version, test_version,"50%")))
-            # Processes.append(Process(target=train_and_predict,args=(project,"with_SMOTE",train_version, test_version,"50%")))
-            # Processes.append(Process(target=train_and_predict,args=(project,"with_manual_mutation",train_version, test_version,"50%")))
             # train_and_predict(project,"without_mutation",train_version, test_version,"50%")
-            # train_and_predict(project,"with_mutation",train_version, test_version,"0.1")1
             # train_and_predict(project,"with_ROS",train_version, test_version,"50%")
             # train_and_predict(project,"with_SMOTE",train_version, test_version,"50%")
             # train_and_predict(project,"with_KMeansSMOTE",train_version, test_version,"50%")
             train_and_predict(project,"with_manual_mutation",train_version, test_version,"50%")
             # train_and_predict(project,"with_DBN",train_version, test_version,"100%")
-            # train_and_predict(project,"with_mix",train_version, test_version,"100%",0,0.25,0.75)
-    # for process in Processes:
-    #     process.start()
-    # for process in Processes:
-    #     process.join()

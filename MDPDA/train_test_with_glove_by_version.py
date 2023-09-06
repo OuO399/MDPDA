@@ -257,13 +257,6 @@ def save_for_glove(projects,cut_length):
             with open("./test_data_with_glove/{}_{}_test_Y_{}.pkl".format(project,test_version,cut_length),"wb") as f :
                 pickle.dump(test_Y_dict_before_embedding,f)
 
-    #         train_X_dict['{}_{}'.format(project,version)] = train_Xs
-    #         train_Y_dict['{}_{}_without_mutation'.format(project,version)] = train_Y
-    #         train_Y_dict['{}_{}_with_mutation'.format(project,version)] = train_Y_with_mutation
-    #         train_Y_dict['{}_{}_with_manual_mutation'.format(project,version)] = train_Y_with_manual_mutation
-    #         test_X_dict['{}_{}'.format(project,version)] = test_X
-    #         test_Y_dict['{}_{}'.format(project,version)] = test_Y
-    # return train_X_dict,test_X_dict,train_Y_dict,test_Y_dict
 
 def handle_batch(projects_with_version,cut_length):
     Processes = []  
@@ -272,17 +265,8 @@ def handle_batch(projects_with_version,cut_length):
 
 
 if __name__ == '__main__':
-    # pre_process("lucene",'2.4')
-    # projects = ['ant','ivy','jEdit']
-    # projects_with_version = {'ant':['1.6','1.7'],"jEdit":['4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],"ivy":['1.4','2.0']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"poi":['2.0','2.5'],"xalan":['2.4','2.5'],"xerces":['1.2','1.3'],"log4j":["1.0","1.1"]}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
-    projects_with_version = {"ivy":['1.4','2.0']}
-    # projects_with_version = {"synapse":['1.0','1.1','1.2'],'xalan':['2.4','2.5']}
-    # projects = ['ivy']
-    # projects = ['ant']
+    projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
+                                "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
     save_for_glove(projects_with_version,1.0)
     os.system('bash ../GloVe/demo.sh')
     # handle_batch(projects_with_version,0.1)

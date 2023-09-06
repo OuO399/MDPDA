@@ -192,72 +192,11 @@ def tokenized_manual_mutation_ast(project_path,project_name,version):
         pickle.dump(num_tokens_dict, f)
 
 
-# # 根据token序列，针对每个项目构建词表，将token序列数值化
-# def tokenized_mutation_file_ast(project_path,project_name,version):
-#     with open("../vocabdict/{}_{}.pkl".format(project_name,version),'rb') as f:
-#         vocabdict = pickle.load(f)
-#     # with open("../numtokens/{}_{}.pkl".format(project_name,version),"rb") as f:
-#     #     num_tokens_dict = pickle.load(f)
-#     if os.path.exists("../numtokens/{}_{}_with_mutation_file.pkl".format(project_name,version)):
-#         with open("../numtokens/{}_{}_with_mutation_file.pkl".format(project_name,version),"rb") as f:
-#             num_tokens_dict = pickle.load(f)
-#     else:
-#         num_tokens_dict = {}
-#     # vocabdict = {}
-#     # num_tokens_dict = {}
-#     index = len(vocabdict.keys())+1
-#     non_bug_files = get_non_bug_files(project_name,version)
-#     for path,file_dirs,files in os.walk(project_path):
-#         source_files =[f for f in files if is_code(f)]
-#         for file in source_files:
-#             file_path = os.path.join(path,file)
-#             if "original" in file_path:
-#                 continue
-#             list1 = file_path.split("/")
-#             if list1[3] in non_bug_files:
-#                 try:
-#                     alltokens = get_token_list(file_path)
-#                 except FileNotFoundError:
-#                     continue
-#                 # programfile = open(file_path)
-#                 # programtext = programfile.read()
-#                 # ast = javalang.parse.parse(programtext)
-#                 # alltokens = []
-#                 # get_sequence(ast, alltokens)
-#                 # print(alltokens)
-#                 alltokens_without_repeat = list(set(alltokens))
-
-#                 for i in alltokens_without_repeat:
-#                     if (i not in vocabdict.keys()):
-#                         vocabdict[i] = index
-#                         index += 1
-#                 ast_num_tokens_list = []
-#                 for i in alltokens:
-#                     ast_num_tokens_list.append(vocabdict[i])
-#                 # print(file_path[start:].replace('\\','.'))
-#                 file_key_name = list1[3]+".java_"+list1[-2] #list[-2]为变异算子
-#                 num_tokens_dict[file_key_name] = ast_num_tokens_list
-#     print(len(num_tokens_dict.keys()))
-#     # print(vocabdict)
-#     with open("../vocabdict/{}_{}.pkl".format(project_name,version),'wb') as f:
-#         pickle.dump(vocabdict,f)
-#     with open("../numtokens/{}_{}_with_mutation_file.pkl".format(project_name,version),"wb") as f:
-#         pickle.dump(num_tokens_dict,f)
-        
-
 
 def is_code(filename):
     return filename.endswith('.java')
 
 
-# def get_all_file_num(path):
-#     count = 0
-#     list1 = []
-#     for dirpath,dirs,files in os.walk(path):
-#         source_files = [f for f in files if is_code(f)]
-#         for file in source_files:
-#             list1.append(file)
-#     print(len(list1))
 
 def process_for_each_project(project,version):
     project_path = '../dataset_source/{}_{}'.format(project,version)
@@ -270,9 +209,6 @@ def process_for_each_project(project,version):
     end_without_time = time.time()
     without_time = end_without_time-start_without_time
     print("{}_{}_without_mutation end".format(project,version))
-    # print("{}_{}_with_mutation start".format(project,version))
-    # tokenized_mutation_file_ast(project_mutation_file_path,project,version)
-    # print("{}_{}_with_mutation end".format(project,version))
     print("{}_{}_with_manual_mutation start".format(project,version))
     start_with_time = time.time()
     tokenized_manual_mutation_ast(project_path,project,version)
@@ -286,59 +222,9 @@ def process_for_each_project(project,version):
     #     f.write("{}_{}_with_mutation_cost:{} \n".format(project, version,with_time))
 
 if __name__ == '__main__':
-    # projects = ["ant"]
-    projects_with_version = {"ant":['1.5','1.6'],"jEdit":['4.1','4.2'],"camel":['1.4','1.6'],"xalan":['2.4','2.5']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"poi":['2.0','2.5'],"xalan":['2.4','2.5'],"xerces":['1.2','1.3'],"log4j":['1.0','1.1']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
+    projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
+                                "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
     Processes = []
     for project in projects_with_version.keys():
         for version in projects_with_version[project]:
             process_for_each_project(project,version)
-            # p = Process(target=process_for_each_project, args=(project,version))
-            # Processes.append(p)
-    # start_time = time.time()
-    # for i in Processes:
-    #     i.start()
-    # for i in Processes:
-    #     i.join()
-    # end_time = time.time()
-    # print("time:{}".format(end_time-start_time))
-
-# if __name__ == '__main__':
-#     # projects = ["ant"]
-#     projects_with_version = {'ant':['1.6','1.7'],'jEdit':['4.3'],'ivy':['2.0']}
-#     # projects_with_version = {'jEdit':['4.3']}
-#     for project in projects_with_version.keys():
-#         for version in projects_with_version[project]:
-#             project_path = '../dataset_source/{}_{}'.format(project,version)
-#             project_mutation_file_path = '../mutation_file/{}_{}'.format(project, version)
-#             # print(project_path)
-#             # get_all_file_num(project_mutation_file_path)
-#             start_time = time.time()
-#             print("{}_{}_without_mutation start".format(project,version))
-#             tokenized_ast(project_path,project,version)
-#             print("{}_{}_without_mutation end".format(project,version))
-#             print("{}_{}_with_mutation start".format(project,version))
-#             tokenized_mutation_file_ast(project_mutation_file_path,project,version)
-#             print("{}_{}_with_mutation end".format(project,version))
-#             print("{}_{}_with_manual_mutation start".format(project,version))
-#             tokenized_manual_mutation_ast(project_path,project,version)
-#             print("{}_{}_with_manual_mutation end".format(project,version))
-#             end_time = time.time()
-#             print("{}_{}_time:{}".format(project,version,end_time-start_time))
-            # p1 = Process(target=tokenized_ast,args=(project_path,project,version))
-            # p2 = Process(target=tokenized_mutation_file_ast,args=(project_mutation_file_path,project,version))
-            # p3 = Process(target=tokenized_manual_mutation_ast,args=(project_path,project,version))
-
-            # start_time = time.time()
-            # p1.start()
-            # p2.start()
-            # p3.start()
-            # p1.join()
-            # p2.join()
-            # p3.join()
-            # end_time = time.time()
-            # print("time:{}".format(end_time-start_time))
-

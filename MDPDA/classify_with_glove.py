@@ -457,36 +457,7 @@ def CNN_classify(project,train_version,test_version,data_type,cut_length,train_X
                     # validation_split=0.2,
                     callbacks=[early_stopping])
 
-        # model = Sequential()
-        # # 一层卷积层，包含了32个卷积核，大小为3*3
-        # model.add(Conv2D(16, kernel_size=3, strides=1,activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2], 1)))
-        # # model.add(Conv2D(32, (5, 5), activation='relu'))
-        # # 一个最大池化层，池化大小为2*2
-        # model.add(MaxPooling2D(pool_size=2,strides=2))
-        # # 遗忘层，遗忘速率为0.25
-        # # model.add(Dropout(0.25))
-        # # 添加一个卷积层，包含64个卷积和，每个卷积和仍为3*3
-        # model.add(Conv2D(32, kernel_size=3, strides=1, activation='sigmoid'))
-        # # model.add(Conv2D(64, (5, 5), activation='relu'))
-        # # 来一个池化层
-        # model.add(MaxPooling2D(pool_size=2,strides=2))
-        # # model.add(Dropout(0.25))
-        # # 压平层
-        # model.add(Flatten())
-        # # 来一个全连接层
-        # model.add(Dense(256, activation='sigmoid'))
-        # # 来一个遗忘层
-        # # model.add(Dropout(0.4))
-        # # 最后为分类层
-        # model.add(Dense(128, activation='sigmoid'))
-        # model.add(Dense(1, activation='sigmoid'))
-        #
-        # # sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-        # # adam = adam_v2.Adam()
-        # model.compile(loss='binary_crossentropy', optimizer="adam",metrics=['accuracy',f1])
-        #
-        # model.fit(train_X, train_Y, batch_size=256, epochs=100,validation_split=0.2)
-        # score = model.evaluate(x_test, y_test, batch_size=32)
+        
         predict_y = model.predict(x={'input': test_X})
         np.save('./Deeper_CNN/{}_{}_{}_{}.npy'.format(project, train_version, test_version, data_type), predict_y)
         predict_y_CNN = np.round(predict_y)
@@ -593,64 +564,19 @@ def handle_batch(projects_with_version,cut_length):
             print(len(train_X))
             print(len(train_Y_without_mutation))
             print(len(train_Y_with_manual_mutation))
-            # train_X = all_train_X_dict[project_version]
-            # test_X = all_test_X_dict[project_version]
-            # test_Y = all_test_Y_dict[project_version]
-            # train_Y_without_mutation = all_train_Y_dict[project_version+"_without_mutation"]
-            # train_Y_with_mutation = all_train_Y_dict[project_version+"_with_mutation"]
-            # train_Y_with_manual_mutation = all_train_Y_dict[project_version+"_with_manual_mutation"]
-            # without_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)
-            # ROS_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)
-            # manual_mutation_oversample(project,train_version,test_version,cut_length,train_X,train_Y_with_manual_mutation,test_X,test_Y,em)
-            # SMOTE_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)
+
+            without_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)
+            ROS_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)
+            manual_mutation_oversample(project,train_version,test_version,cut_length,train_X,train_Y_with_manual_mutation,test_X,test_Y,em)
+            SMOTE_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)
             flag = 1
             while flag == 1:
                 flag = KMeansSMOTE_oversample(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em) 
-            # exit()
-            # #逐个项目跑
-            # p1 = Process(target=without_oversample,args=(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em))
-            # # p2 = Process(target=mutation_oversample,args=(project,version,cut_length_string,train_X,train_Y,test_X,test_Y))
-            # p3 = Process(target=ROS_oversample,args=(project,train_version,test_version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em))
-            # p4 = Process(target=manual_mutation_oversample,args=(project,train_version,test_version,cut_length,train_X,train_Y_with_manual_mutation,test_X,test_Y,em))
-            # start_time = time.time()
-            # p1.start()
-            # # p2.start()
-            # p3.start()
-            # p4.start()
-            # p1.join()
-            # # p2.join()
-            # p3.join()
-            # p4.join()
-            # end_time = time.time()
-            # print("time:{}".format(end_time-start_time))
 
-            #所有项目一起跑
-    #         Processes.append(Process(target=without_oversample,args=(project,version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)))
-    #         Processes.append(Process(target=mutation_oversample,args=(project,version,cut_length,train_X,train_Y_with_mutation,test_X,test_Y,em)))
-    #         Processes.append(Process(target=ROS_oversample,args=(project,version,cut_length,train_X,train_Y_without_mutation,test_X,test_Y,em)))
-    #         Processes.append(Process(target=manual_mutation_oversample,args=(project,version,cut_length,train_X,train_Y_with_manual_mutation,test_X,test_Y,em)))
-    # start_time = time.time()
-    # for process in Processes:
-    #     process.start()
-    # for process in Processes:
-    #     process.join()
-    # end_time = time.time()
-    # print("time:{}".format(end_time-start_time))
 
 if __name__ == '__main__':
-    # pre_process("lucene",'2.4')
-    # projects = ['ant','ivy','jEdit']
-    projects_with_version = {"synapse":['1.0','1.1','1.2']}
-    # projects_with_version = {"jEdit":['4.0','4.1','4.2']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"poi":['2.0','2.5'],"xalan":['2.4','2.5'],"xerces":['1.2','1.3'],"log4j":["1.0","1.1"]}
-    # projects_with_version = {'ant':["1.5",'1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
-    # projects_with_version = {"jEdit":['4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
-    # projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
-    # projects_with_version = {"camel":['1.4','1.6'],
-    #                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
+    projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
+                                "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
+
     handle_batch(projects_with_version,1.0) 
     # handle_batch("ant")

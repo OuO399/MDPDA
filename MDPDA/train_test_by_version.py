@@ -76,17 +76,7 @@ def pre_process(project_name,train_version,test_version,cut_length):
         train_num_tokens_dict = change_length(train_num_tokens_dict,fix_length)
         test_num_tokens_dict = change_length(test_num_tokens_dict,fix_length)
 
-        
-
-        # for i in file_names:
-        #     try:
-        #         labels.append(label_dict[i])
-        #         DBN_data.append(np.array(num_tokens_dict[i]))
-        #     except KeyError:
-        #         continue
-
-        # print(np.array((DBN_data[1])).shape)
-        # print(labels)
+    
         return train_num_tokens_dict,test_num_tokens_dict,train_label_dict,test_label_dict,str(int(cut_length*100))+"%",fix_length
 
 def without_oversample(project,train_version,test_version,cut_length,train_X_dict,train_Y_dict,test_X_dict,test_Y_dict):
@@ -161,14 +151,7 @@ def mutation_oversample(project_name,train_version,test_version,cut_length,train
         numlist = [i for i in range(len(train_tokens_dict_with_mutation))]
     else:
         numlist = random.sample(range(0,len(train_tokens_dict_with_mutation)-1),num)
-        # while len(numArray)<num:
-        #     random_num = random.randint(0,len(num_tokens_dict_with_mutation)-1)
-        #     # 确定变异文件为训练集中存在的文件变异而来的
-        #     # 工具生成的变异文件
-        #     file_name = list(num_tokens_dict_with_mutation.keys())[random_num].split("_")[0]
-        #     if(file_name in train_X_dict.keys()):
-        #         numArray.add(random_num)
-        # numlist = list(numArray)
+
     for i in numlist:
         key = list(train_tokens_dict_with_mutation.keys())[i]
         num_tokens = train_tokens_dict_with_mutation[key]
@@ -229,13 +212,7 @@ def manual_mutation_oversample(project_name,train_version,test_version,cut_lengt
         numlist = [i for i in range(len(num_tokens_dict_with_mutation))]
     else:
         numlist = random.sample(range(0,len(num_tokens_dict_with_mutation)-1),num)
-        # while len(numArray)<num:
-        #     random_num = random.randint(0,len(num_tokens_dict_with_mutation)-1)
-        #     # 确定变异文件为训练集中存在的文件变异而来的
-        #     # 手工生成的变异文件
-        #     if(list(num_tokens_dict_with_mutation.keys())[random_num] in train_X_dict.keys()):
-        #         numArray.add(random_num)
-        # numlist = list(numArray)
+
     for i in numlist:
         key = list(num_tokens_dict_with_mutation.keys())[i]
         num_tokens = num_tokens_dict_with_mutation[key]
@@ -371,108 +348,6 @@ def KMeansSMOTE_oversample(project,train_version,test_version,cut_length,train_X
 
 
 
-def mix_oversample(project,train_version,test_version,cut_length,train_X_dict,train_Y_dict,test_X_dict,test_Y_dict,ros_ratio,smote_ratio,mutation_ratio):
-    print("mix_oversample start")
-    train_X_list = []
-    train_Y_list = []
-    test_X_list = []
-    test_Y_list = []
-    train_file_names = train_Y_dict.keys()
-    for i in train_file_names:
-        try:
-            train_X_list.append(train_X_dict[i])
-            train_Y_list.append(train_Y_dict[i])
-        except KeyError:
-            continue
-    train_X = np.array(train_X_list)
-    train_Y = np.array(train_Y_list)
-    test_file_names = test_Y_dict.keys()
-    for i in test_file_names:
-        try:
-            test_X_list.append(test_X_dict[i])
-            test_Y_list.append(test_Y_dict[i])
-        except KeyError:
-            continue
-    test_X = np.array(test_X_list)
-    test_Y = np.array(test_Y_list)
-
-    defect_num = np.sum(train_Y == 1)
-    nondefect_num = np.sum(train_Y == 0)
-    D_value = (nondefect_num-defect_num)
-    print("train_X:{}".format(train_X.shape))
-
-
-    
-    # ros = ROS(sampling_strategy={0:nondefect_num,1:num_for_ros},random_state=66)
-    # train_X_resample_ros,train_Y_resample_ros = ros.fit_resample(train_X,train_Y)
-    # print("train_X_resample_ros:{}".format(len(train_X_resample_ros)))
-
-    # smote部分
-    num_for_smote = int(D_value*smote_ratio)+defect_num
-    smote = SMOTE(sampling_strategy={0:nondefect_num,1:num_for_smote},random_state=3618)
-    train_X_resample_smote,train_Y_resample_smote = smote.fit_resample(train_X,train_Y)
-    print("train_X_resample_smote:{}".format(train_X_resample_smote.shape))
-    print(num_for_smote)
-    print("train_X_resample_smote:{}".format(np.sum(train_Y_resample_smote==1)))
-    print("train_X:{}".format(train_X.shape))
-
-    #变异部分
-    fix_length = len(train_X_list[0])
-    num_for_mutation = int(D_value*mutation_ratio)
-    train_X_resample_mutation = []
-    train_Y_resample_mutation = []
-    with open("../numtokens/{}_{}_with_manual_mutation_file.pkl".format(project, train_version), "rb") as f:
-        num_tokens_dict_with_mutation = pickle.load(f)
-    if (len(num_tokens_dict_with_mutation)<=num_for_mutation) :
-        numlist = [i for i in range(len(num_tokens_dict_with_mutation))]
-    else:
-        numlist = random.sample(range(0,len(num_tokens_dict_with_mutation)-1),num_for_mutation)
-    for i in numlist:
-        key = list(num_tokens_dict_with_mutation.keys())[i]
-        num_tokens = num_tokens_dict_with_mutation[key]
-        if(len(num_tokens)>fix_length):
-            num_tokens = num_tokens[:fix_length]
-        else:
-            length = len(num_tokens)
-            for _ in range(fix_length-length):
-                num_tokens.append(0)
-        train_X_resample_mutation.append(num_tokens)
-        train_Y_resample_mutation.append(1)
-    # train_Y_resample_mutation = train_Y
-    # train_X_resample_mutation = np.append(train_X,add_list,axis=0)
-    # train_X = np.array(train_X_list)
-    # print("train_X_resample_mutation:{}".format(len(train_X_resample_mutation)))
-
-    # ros部分(手动实现)
-    random.seed(66)
-    num_for_ros = int(D_value*ros_ratio)
-    train_X_length = len(train_X)
-    index_list = []
-    train_X_resample_ros=[]
-    train_Y_resample_ros=[]
-    for i in range(num_for_ros):
-        index = random.randint(0,train_X_length-1)
-        index_list.append(index)
-    for i in index_list:
-        train_X_resample_ros.append(train_X[i])
-        train_Y_resample_ros.append(train_Y[i])
-
-    # 整合三种增强方式
-    train_X_resample_list = []
-    train_Y_resample_list = []
-    # train_X_resample = np.append(train_X_resample_smote,train_X_resample_ros,axis=0)
-    # train_Y_resample = np.append(train_Y_resample_smote,train_Y_resample_ros)
-    # train_X_resample = np.append(train_X_resample,train_X_resample_mutation,axis=0)
-    # train_Y_resample = np.append(train_Y_resample,train_Y_resample_mutation)
-    train_X_resample = np.append(train_X_resample_smote,train_X_resample_mutation,axis=0)
-    train_Y_resample = np.append(train_Y_resample_smote,train_Y_resample_mutation)
-
-    print("train_X_resample:{}".format(train_X_resample.shape))
-    dbn_train(project,train_version,test_version,"with_mix",cut_length,train_X_resample,train_Y_resample,test_X,test_Y,ros_ratio,smote_ratio,mutation_ratio)
-    print("mix_oversample end")
-
-
-
 def dbn_train(project,train_version,test_version,data_type,cut_length,train_X,train_Y,test_X,test_Y,ros_ratio=0,smote_ratio=0,mutation_ratio=0):
     # 构建dbn模型进行训练
     max_num = 0
@@ -573,67 +448,19 @@ def handle_batch(projects,cut_length):
             train_version = versions[i]
             test_version = versions[i+1]
             train_X,test_X,train_Y,test_Y,cut_length_string,train_fix_length = pre_process(project,train_version,test_version,cut_length)
-            # test_X,test_Y,cut_length_string,test_fix_length = pre_process(project,test_version,cut_length,train_fix_length)
-            # print(DBN_data.shape)
-            # train_X,test_X,train_Y,test_Y = train_test_split(project,version,DBN_data_dict,labels_dict,test_size=0.3,random_state = 10)
+
             
-            # without_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
-            # mutation_oversample(project,version,cut_length_string,train_X,train_Y,test_X,test_Y)
-            # ROS_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
-            # SMOTE_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
-            # is_finish = 0
-            # while is_finish == 0:
-            #     is_finish = KMeansSMOTE_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
+            without_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
+            ROS_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
+            SMOTE_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
+            is_finish = 0
+            while is_finish == 0:
+                is_finish = KMeansSMOTE_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
             manual_mutation_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)
-            # mix_oversample(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y,0,0.25,0.75)
 
 
-            # # 逐个项目跑
-            # p1 = Process(target=without_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y))
-            # p2 = Process(target=SMOTE_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y))
-            # p3 = Process(target=ROS_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y))
-            # p4 = Process(target=manual_mutation_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y))
-            # start_time = time.time()
-            # p1.start()
-            # p2.start()
-            # p3.start()
-            # p4.start()
-            # p1.join()
-            # p2.join()
-            # p3.join()
-            # p4.join()
-            # end_time = time.time()
-            # print("time:{}".format(end_time-start_time))
+if __name__ == '__main__':
+    projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
+                                "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
 
-    #         # 所有项目一起跑
-    #         Processes.append(Process(target=without_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)))
-    #         Processes.append(Process(target=ROS_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)))
-    #         Processes.append(Process(target=SMOTE_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)))
-    #         Processes.append(Process(target=manual_mutation_oversample,args=(project,train_version,test_version,cut_length_string,train_X,train_Y,test_X,test_Y)))
-    # start_time = time.time()
-    # for process in Processes:
-    #     process.start()
-    # for process in Processes:
-    #     process.join()
-    # end_time = time.time()
-    # print("time:{}".format(end_time-start_time))
-
-
-# pre_process("lucene",'2.4')
-# projects = ['jEdit','ant','ivy']
-# projects_with_version = {'ant':['1.6','1.7'],"jEdit":['4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],"ivy":['1.4','2.0']}
-# projects_with_version = {"synapse":['1.0','1.1'],"camel":['1.4','1.6'],
-#                             "ivy":['1.4','2.0']}
-# projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-#                             "ivy":['1.4','2.0'],"poi":['2.0','2.5'],"xalan":['2.4','2.5'],"xerces":['1.2','1.3'],"log4j":['1.0','1.1']}
-# projects_with_version = {"xerces":['1.2','1.3'],"log4j":['1.0','1.1']
-# projects_with_version = {'ant':['1.5','1.6','1.7'],"jEdit":['4.0','4.1','4.2'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-#                             "ivy":['1.4','2.0'],"xalan":['2.4','2.5']}
-projects_with_version = {"ant":['1.5','1.6'],"jEdit":['4.1','4.2'],"camel":['1.4','1.6'],"xalan":['2.4','2.5']}
-# projects_with_version = {"synapse":['1.0','1.1']}
-# projects_with_version = {"jEdit":['4.0','4.1','4.2','4.3'],"synapse":['1.0','1.1','1.2'],"camel":['1.4','1.6'],
-#                             "ivy":['1.4','2.0'],"poi":['2.0','2.5'],"xalan":['2.4','2.5'],"xerces":['1.2','1.3'],"log4j":['1.0','1.1']}
-# projects = ['ivy']
-# projects = ['ant']
-handle_batch(projects_with_version,0.5)
-# handle_batch("ant")
+    handle_batch(projects_with_version,0.5)
