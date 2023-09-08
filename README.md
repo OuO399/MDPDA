@@ -9,7 +9,15 @@
 
 ---
 ## 文件夹
-data_source  需要自行找到对应项目的具体代码文件
+data_source  需要找到对应项目的具体代码文件放在其中，或者直接使用压缩包中的数据。
+
+其中部分项目可以查看以下地址，寻找对应的tag版本或者自行寻找：
+
+https://github.com/apache/ant
+
+https://github.com/apache/camel
+
+https://github.com/apache/xalan-java
 
 GloVe  存放使用的GloVe模型
 
